@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Forecast</title>
+	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
+    <script>
+        var results;
+        //MAP
+    $(function(){
+        var map = L.map('map', {
+        center: [37.749, -122.443],
+        zoom: 13,
+        });
+
+
+        var accessToken = 'pk.eyJ1Ijoicmdhc3RvbiIsImEiOiJJYTdoRWNJIn0.MN6DrT07IEKXadCU8xpUMg'; 
+        var mapId = 'maksimstevenson.ca6f4145';
+         var mapboxTiles = L.tileLayer('https://{s}.tiles.mapbox.com/v4/' + mapId + '/{z}/{x}/{y}.png?access_token=' + accessToken, {
+        attribution: '<a href="http://www.mapbox.com/about/maps/" target="_blank">Terms &amp; Feedback</a>'
+    });
+    map.addLayer(mapboxTiles);
+    
+     map.on('locationfound', function(e) {
+       
+        L.marker([e.latitude, e.longitude]).
+            addTo(map).
+            bindPopup('You are here!');
+    });
+
+    
+    map.locate({ setView: true });
+    map.on('locationfound', onLocationFound);
+        function onLocationFound(e) {
+            L.marker(e.latlng).addTo(map);
+            $.get('http://api.wunderground.com/api/eed431bfe04df8ba/conditions/q/' + e.latitude + ',' + e.longitude + '.json',
+                  function(data){
+                results = data;
+                $("#curr-temp").text(data.current_observation.temp_f);
+                $("#weather").text(data.current_observation.weather);
+                $("#UV").text(data.current_observation.UV);
+                $("#dew").text(data.current_observation.dewpoint_string);
+                $("#precip").text(data.current_observation.precip_today_string);
+                $("#humidity").text(data.current_observation.relative_humidity);
+                $("#icon").text(data.current_observation.icon_url);
+                
+            })
+        }    
+        
+        //API 
+         function get(url, success) {
+          var xhr = new XMLHttpRequest();
+
+          xhr.addEventListener("readystatechange", function() {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+              success(JSON.parse(xhr.response));
+            }
+          });
+
+          xhr.open("GET", url);
+          xhr.send();
+        }
+        
+        function success(results){
+        var weather = results["Search"];
+        }
+        
+        function buttonClicked(){
+            $.get('http://api.wunderground.com/api/eed431bfe04df8ba/forecast/q/'+ document.getElementById("search").value +'.json', 
+                function(data){
+            results = data;
+                
+            })
+       }
+        var button = document.getElementById("button");
+       button.addEventListener("click", buttonClicked);
+
+    });
+</script>
+ <link href="index.css" rel="stylesheet">
+</head>
+<body>
+	<header></header>
+	<main>
+		<div class="main-div">
+			<div class="search-form">
+        		<input id="search" type="text" placeholder="Type your location...">
+				<button id="button">Search</button>
+            </div>   	
+            <div id="map">
+   
+            </div>
+            <div class="curr-condition">
+                    <div class="datagrid">
+                    <table>
+                        <tbody>
+                        <tr>
+                           <td>Weather:</td>
+                           <td id="weather"></td>
+                         
+                        </tr>
+                        <tr class="alt">
+                           <td>Temperature:</td>
+                           <td id="curr-temp"></td>
+                        </tr>
+                        <tr>
+                            <td>UV:</td>
+                            <td id="UV"></td>
+                        </tr>
+                        <tr class="alt">
+                            <td>Dewpoint:</td>
+                            <td id="dew"></td>
+                        </tr>
+                        <tr>
+                            <td>Precipitation:</td>
+                            <td id="precip"></td>
+                        </tr>
+                        <tr class="alt">
+                            <td>Relative Humidity</td>
+                            <td id="humidity"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    </div>
+                    
+            </div>
+		</div>
+
+	</main>
+	<footer></footer>
+</body>
+</html>
+
